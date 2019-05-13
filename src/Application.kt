@@ -20,6 +20,7 @@ import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.close
 import io.ktor.http.cio.websocket.readText
 import io.ktor.request.receive
+import io.ktor.request.receiveText
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.delete
@@ -32,6 +33,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
+import java.lang.Exception
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -63,13 +65,13 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        post("/student") {
+        post("/students") {
             val newStudent = call.receive<PostStudent>()
 
             call.respond(Repository.addStudent(newStudent))
         }
 
-        post("/seminar") {
+        post("/seminars") {
             val newSeminar = call.receive<PostSeminar>()
 
             call.respond(Repository.addSeminar(newSeminar))
@@ -79,6 +81,14 @@ fun Application.module(testing: Boolean = false) {
             val id = requireNotNull(call.parameters["student_id"])
 
             val result = Repository.deleteStudent(id)
+            val status = if (result) HttpStatusCode.OK else HttpStatusCode.NotFound
+            call.respondText(status = status, text = "Done")
+        }
+
+        delete("/seminars/{seminar_id}") {
+            val id = requireNotNull(call.parameters["seminar_id"])
+
+            val result = Repository.deleteSeminar(id)
             val status = if (result) HttpStatusCode.OK else HttpStatusCode.NotFound
             call.respondText(status = status, text = "Done")
         }

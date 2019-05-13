@@ -1,7 +1,7 @@
 package de.aaronoe.models
 
-data class PostSeminar(val name: String) {
+data class PostSeminar(val name: String, val capacity: Int) {
 
-    fun toSeminar() = Seminar(name = name, capacity = 12)
+    fun toSeminar() = Seminar(name = name, capacity = capacity)
 
 }

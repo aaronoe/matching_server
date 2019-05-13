@@ -71,4 +71,17 @@ object Repository {
         }
     }
 
+    suspend fun deleteSeminar(seminarId: String): Boolean {
+        return studentData.let {
+            val newSeminars = it.seminars
+            val result = newSeminars.removeIf { it.id == seminarId }
+
+            it.copy(seminars = newSeminars).also {
+                studentData = it
+                channel.send(it)
+            }
+            result
+        }
+    }
+
 }
