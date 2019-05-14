@@ -1,6 +1,8 @@
 package de.aaronoe
 
 import com.google.gson.Gson
+import de.aaronoe.algorithms.AaronPopularityAlgorithm
+import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar
 import de.aaronoe.models.PostStudent
 import io.ktor.application.Application
@@ -11,7 +13,6 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.features.StatusPages
 import io.ktor.gson.gson
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -20,8 +21,9 @@ import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.close
 import io.ktor.http.cio.websocket.readText
 import io.ktor.request.receive
-import io.ktor.request.receiveText
+import io.ktor.response.header
 import io.ktor.response.respond
+import io.ktor.response.respondFile
 import io.ktor.response.respondText
 import io.ktor.routing.delete
 import io.ktor.routing.get
@@ -33,7 +35,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
-import java.lang.Exception
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -75,6 +76,22 @@ fun Application.module(testing: Boolean = false) {
             val newSeminar = call.receive<PostSeminar>()
 
             call.respond(Repository.addSeminar(newSeminar))
+        }
+
+        get("/match") {
+            val (students, seminars) = Repository.getCopiedStudentData()
+            val result = AaronPopularityAlgorithm.execute(students, seminars)
+
+            result.map(Matching.Companion::fromMapEntry).let {
+                call.respond(it)
+            }
+        }
+
+        get("/download") {
+            Repository.getDataFile()?.let {
+                call.response.header("Content-Disposition", "attachment; filename=\"${it.name}\"")
+                call.respondFile(it)
+            } ?: call.respond(status = HttpStatusCode.NotFound, message = "Not found")
         }
 
         delete("/students/{student_id}") {

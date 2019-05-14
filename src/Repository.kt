@@ -8,6 +8,7 @@ import de.aaronoe.models.Student
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
+import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 import kotlin.properties.ReadWriteProperty
@@ -35,6 +36,20 @@ object Repository {
             FileWriter("${property.name}.json").use { writer ->
                 gson.toJson(value, writer)
             }
+        }
+    }
+
+    fun getDataFile(): File? {
+        return File("${::studentData.name}.json").let {
+            if (it.exists()) it else null
+        }
+    }
+
+    fun getCopiedStudentData(): AppData {
+        return studentData.let {
+            val students = it.students.map { it.copy(preferences = it.preferences.map { it.copy() }) }
+            val seminars = it.seminars.map { it.copy() }
+            it.copy(students.toMutableList(), seminars.toMutableList())
         }
     }
 
@@ -76,7 +91,11 @@ object Repository {
             val newSeminars = it.seminars
             val result = newSeminars.removeIf { it.id == seminarId }
 
-            it.copy(seminars = newSeminars).also {
+            val updatedStudents = it.students.map { it.copy(preferences = it.preferences.toMutableList().apply {
+                removeAll { it.id == seminarId }
+            })}
+
+            it.copy(seminars = newSeminars, students = updatedStudents.toMutableList()).also {
                 studentData = it
                 channel.send(it)
             }
