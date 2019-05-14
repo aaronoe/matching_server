@@ -12,7 +12,7 @@ object DeferredAcceptanceAlgorithm: StudentMatchingAlgorithm {
 
         var round = 0
 
-        while (round < students.first().preferences.size) {
+        while (round < seminars.size) {
             for (student in students) {
                 if (student.match == null) {
                     val currentPreference = student.preferences.getOrNull(round) ?: continue

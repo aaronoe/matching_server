@@ -47,8 +47,10 @@ object Repository {
 
     fun getCopiedStudentData(): AppData {
         return studentData.let {
-            val students = it.students.map { it.copy(preferences = it.preferences.map { it.copy() }) }
-            val seminars = it.seminars.map { it.copy() }
+            val seminarMap = it.seminars.map { it.copy() }.associateBy { it.id }
+
+            val students = it.students.map { it.copy(preferences = it.preferences.map { seminarMap.get(it.id)!! }) }
+            val seminars = seminarMap.values
             it.copy(students.toMutableList(), seminars.toMutableList())
         }
     }

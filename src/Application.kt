@@ -2,6 +2,7 @@ package de.aaronoe
 
 import com.google.gson.Gson
 import de.aaronoe.algorithms.AaronPopularityAlgorithm
+import de.aaronoe.algorithms.DeferredAcceptanceAlgorithm
 import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar
 import de.aaronoe.models.PostStudent

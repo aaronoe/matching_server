@@ -46,8 +46,6 @@ object AaronPopularityAlgorithm: StudentMatchingAlgorithm {
             }
         }
 
-        println("Matched student # ${matchedStudents.size} - unmatched #${unmatchedStudents.size}")
-
         println(map)
 
         students.map { student ->
