@@ -1,8 +1,7 @@
 package de.aaronoe
 
 import com.google.gson.Gson
-import de.aaronoe.algorithms.AaronPopularityAlgorithm
-import de.aaronoe.algorithms.DeferredAcceptanceAlgorithm
+import de.aaronoe.algorithms.RandomSerialDictatorshipAlgorithm
 import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar
 import de.aaronoe.models.PostStudent
@@ -81,9 +80,20 @@ fun Application.module(testing: Boolean = false) {
 
         get("/match") {
             val (students, seminars) = Repository.getCopiedStudentData()
-            val result = AaronPopularityAlgorithm.execute(students, seminars)
+            val result = RandomSerialDictatorshipAlgorithm.execute(students, seminars)
 
-            result.map(Matching.Companion::fromMapEntry).let {
+            val test = result
+                .flatMap { (seminar, students) ->
+                    students.map { student -> student.preferences.indexOf(seminar) }
+                }
+                .groupBy { it }
+                .mapValues { it.value.count() }
+                .toList()
+                .sortedBy(Pair<Int, Int>::first)
+                .map(Pair<Int, Int>::second)
+
+            println("Profile: $test")
+            result.map(Matching.Companion::fromMapEntry).sortedBy { it.seminar.name }.let {
                 call.respond(it)
             }
         }

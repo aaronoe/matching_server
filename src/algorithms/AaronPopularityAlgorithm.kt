@@ -8,8 +8,6 @@ import de.aaronoe.models.Student
 object AaronPopularityAlgorithm: StudentMatchingAlgorithm {
 
     override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
-        val students = students.map { it.copy() }
-
         data class MapResult(
             val students: List<Student>,
             val seminar: Seminar,

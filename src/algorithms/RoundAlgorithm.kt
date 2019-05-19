@@ -5,11 +5,9 @@ package de.aaronoe.algorithms
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 
-object DeferredAcceptanceAlgorithm: StudentMatchingAlgorithm {
+object RoundAlgorithm: StudentMatchingAlgorithm {
 
     override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
-        val students = students.map { it.copy() }
-
         var round = 0
 
         while (round < seminars.size) {

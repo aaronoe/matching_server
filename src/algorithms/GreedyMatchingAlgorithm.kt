@@ -8,8 +8,6 @@ import de.aaronoe.models.Student
 object GreedyMatchingAlgorithm : StudentMatchingAlgorithm {
 
     override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
-        val students = students.map { it.copy() }
-
         val assignments = mutableMapOf<Student, Seminar>()
         val unassignedStudents = mutableSetOf<Student>()
 
