@@ -2,6 +2,7 @@ package de.aaronoe
 
 import com.google.gson.Gson
 import de.aaronoe.algorithms.RandomSerialDictatorshipAlgorithm
+import de.aaronoe.models.MatchResponse
 import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar
 import de.aaronoe.models.PostStudent
@@ -82,7 +83,7 @@ fun Application.module(testing: Boolean = false) {
             val (students, seminars) = Repository.getCopiedStudentData()
             val result = RandomSerialDictatorshipAlgorithm.execute(students, seminars)
 
-            val test = result
+            val profile = result
                 .flatMap { (seminar, students) ->
                     students.map { student -> student.preferences.indexOf(seminar) }
                 }
@@ -92,9 +93,11 @@ fun Application.module(testing: Boolean = false) {
                 .sortedBy(Pair<Int, Int>::first)
                 .map(Pair<Int, Int>::second)
 
-            println("Profile: $test")
+            val unassignedCount = students.count() - profile.sum()
+
+            println("Profile: $profile")
             result.map(Matching.Companion::fromMapEntry).sortedBy { it.seminar.name }.let {
-                call.respond(it)
+                call.respond(MatchResponse(it, profile, unassignedCount))
             }
         }
 
