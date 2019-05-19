@@ -15,7 +15,7 @@ object RoundAlgorithm: StudentMatchingAlgorithm {
                 if (student.match == null) {
                     val currentPreference = student.preferences.getOrNull(round) ?: continue
                     if (currentPreference.canAssignMore) {
-                        currentPreference.assignment.add(student)
+                        currentPreference.assignments.add(student)
                         student.match = currentPreference
                     }
                 }

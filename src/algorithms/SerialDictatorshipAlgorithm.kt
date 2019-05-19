@@ -9,7 +9,7 @@ object SerialDictatorshipAlgorithm: StudentMatchingAlgorithm {
         students.forEach { student ->
             for (seminar in student.preferences) {
                 if (seminar.canAssignMore) {
-                    seminar.assignment.add(student)
+                    seminar.assignments.add(student)
                     student.match = seminar
                     break
                 }

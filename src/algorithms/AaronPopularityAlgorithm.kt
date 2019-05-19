@@ -26,7 +26,7 @@ object AaronPopularityAlgorithm: StudentMatchingAlgorithm {
         val matchedStudents = map.filter { it.value.hasCapacityLeft }.flatMap { it.value.students }.also {
             it.forEach { student ->
                 student.match = student.preferences.first().also {
-                    it.assignment.add(student)
+                    it.assignments.add(student)
                 }
             }
         }
@@ -37,7 +37,7 @@ object AaronPopularityAlgorithm: StudentMatchingAlgorithm {
                 if (student.match == null) {
                     val currentPreference = student.preferences.getOrNull(index) ?: continue
                     if (currentPreference.canAssignMore) {
-                        currentPreference.assignment.add(student)
+                        currentPreference.assignments.add(student)
                         student.match = currentPreference
                     }
                 }
