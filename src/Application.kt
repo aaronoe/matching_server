@@ -1,7 +1,7 @@
 package de.aaronoe
 
 import com.google.gson.Gson
-import de.aaronoe.algorithms.RandomSerialDictatorshipAlgorithm
+import de.aaronoe.algorithms.PopularChaAlgorithm
 import de.aaronoe.models.MatchResponse
 import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar
@@ -81,7 +81,7 @@ fun Application.module(testing: Boolean = false) {
 
         get("/match") {
             val (students, seminars) = Repository.getCopiedStudentData()
-            val result = RandomSerialDictatorshipAlgorithm.execute(students, seminars)
+            val result = PopularChaAlgorithm.execute(students, seminars)
 
             val profile = result
                 .flatMap { (seminar, students) ->
