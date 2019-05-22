@@ -11,6 +11,7 @@ import kotlin.test.*
 import io.ktor.server.testing.*
 
 class ApplicationTest {
+    @Ignore
     @Test
     fun testRoot() {
         withTestApplication({ module(testing = true) }) {
