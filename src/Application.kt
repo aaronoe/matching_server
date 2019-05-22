@@ -67,6 +67,10 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
+        get("/hello") {
+            call.respondText(text = "Hello World")
+        }
+
         post("/students") {
             val newStudent = call.receive<PostStudent>()
 

@@ -1,0 +1,1 @@
+web: java -jar build/libs/matching_server-0.0.1-all.jar
