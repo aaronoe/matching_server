@@ -5,6 +5,6 @@ import de.aaronoe.models.Student
 
 interface StudentMatchingAlgorithm {
 
-    fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>>
+    suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>>
 
 }

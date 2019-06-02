@@ -7,7 +7,7 @@ import de.aaronoe.models.Student
 
 object AaronPopularityAlgorithm : StudentMatchingAlgorithm {
 
-    override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
+    override suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
         data class MapResult(
             val students: List<Student>,
             val seminar: Seminar,

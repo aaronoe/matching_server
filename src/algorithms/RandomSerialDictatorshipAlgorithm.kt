@@ -5,7 +5,7 @@ import de.aaronoe.models.Student
 
 object RandomSerialDictatorshipAlgorithm: StudentMatchingAlgorithm {
 
-    override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
+    override suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
         return SerialDictatorshipAlgorithm.execute(students.shuffled(), seminars)
     }
 

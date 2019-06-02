@@ -7,7 +7,7 @@ import de.aaronoe.models.Student
 
 object RoundAlgorithm: StudentMatchingAlgorithm {
 
-    override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
+    override suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
         var round = 0
 
         while (round < seminars.size) {

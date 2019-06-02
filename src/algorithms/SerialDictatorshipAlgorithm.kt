@@ -5,7 +5,7 @@ import de.aaronoe.models.Student
 
 object SerialDictatorshipAlgorithm: StudentMatchingAlgorithm {
 
-    override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
+    override suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
         students.forEach { student ->
             for (seminar in student.preferences) {
                 if (seminar.canAssignMore) {

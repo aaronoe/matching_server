@@ -41,6 +41,7 @@ dependencies {
     compile "io.ktor:ktor-gson:$ktor_version"
     compile "io.ktor:ktor-websockets:$ktor_version"
     implementation "org.jgrapht:jgrapht-core:1.3.0"
+    implementation "org.jgrapht:jgrapht-io:1.3.0"
 
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
 }

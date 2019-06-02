@@ -8,6 +8,7 @@ import de.aaronoe.models.Student
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.yield
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -103,6 +104,13 @@ object Repository {
             }
             result
         }
+    }
+
+    suspend fun Process.awaitCompletion() {
+        while (isAlive) {
+            yield()
+        }
+        waitFor()
     }
 
 }

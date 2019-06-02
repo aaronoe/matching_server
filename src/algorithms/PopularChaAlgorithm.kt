@@ -3,12 +3,12 @@ package de.aaronoe.algorithms
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import org.jgrapht.alg.matching.HopcroftKarpMaximumCardinalityBipartiteMatching
-import org.jgrapht.graph.DefaultWeightedEdge
-import org.jgrapht.graph.SimpleWeightedGraph
+import org.jgrapht.graph.DefaultEdge
+import org.jgrapht.graph.SimpleGraph
 
 object PopularChaAlgorithm : StudentMatchingAlgorithm {
 
-    override fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
+    override suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
         data class MapResult(
             val students: List<Student>,
             val seminar: Seminar,
@@ -20,8 +20,9 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
             }
         }
 
-        val matchedStudents = students
-            .groupBy { it.preferences.first() }
+        val houseCapacityOverview = students.groupBy { it.preferences.first() }
+
+        val matchedStudents = houseCapacityOverview
             .mapValues { MapResult(it.value, it.key, it.value.count() <= it.key.capacity) }
             .filter { it.value.hasCapacityLeft }
             .flatMap { it.value.students }
@@ -34,9 +35,9 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
             }
 
         val unmatchedStudents = students - matchedStudents
-        val availableSeminars = unmatchedStudents.flatMap { it.preferences.filter { it.canAssignMore } }.toHashSet()
+        val availableSeminars = seminars.filter(Seminar::canAssignMore).toHashSet()
 
-        val graph = SimpleWeightedGraph<String, DefaultWeightedEdge>(DefaultWeightedEdge::class.java)
+        val graph = SimpleGraph<String, DefaultEdge>(DefaultEdge::class.java)
 
         unmatchedStudents.forEach {
             graph.addVertex(it.id)
@@ -59,17 +60,25 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
             }
         }
 
-        unmatchedStudents.forEach { student ->
-            student.preferences.forEachIndexed { index, seminar ->
-                seminarMap[seminar]?.forEach {
-                    graph.addEdge(student.id, it.id).also {
-                        graph.setEdgeWeight(it, index.toDouble())
-                    }
+        // create f and s houses for students
+        val studentPrefs = unmatchedStudents.map {
+            val fHouse = it.preferences.first()
+            val sHouse = it.preferences.first {
+                it != fHouse && houseCapacityOverview[it]!!.size < it.capacity
+            } // TODO: last resort houses
+
+            it to (fHouse to sHouse)
+        }
+
+        studentPrefs.forEach { (student, prefs) ->
+            prefs.toList().forEach {
+                seminarMap[it]!!.forEach {
+                    graph.addEdge(student.id, it.id)
                 }
             }
         }
 
-        val algorithm = HopcroftKarpMaximumCardinalityBipartiteMatching<String, DefaultWeightedEdge>(
+        val algorithm = HopcroftKarpMaximumCardinalityBipartiteMatching<String, DefaultEdge>(
             graph,
             unmatchedStudents.map { it.id }.toSet(),
             seminarMap.flatMap { it.value.map { it.id } }.toSet()
@@ -77,14 +86,44 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
 
         val studentMap = unmatchedStudents.associateBy { it.id }
 
-        algorithm.matching.edges.forEach { edge ->
+        val matching = algorithm.matching
+        println("IsPerfect: ${matching.edges.size == unmatchedStudents.size}")
+        matching.edges.forEach { edge ->
             val student = studentMap[graph.getEdgeSource(edge)]!!
             val seminar = idSeminarMap[graph.getEdgeTarget(edge)]!!
 
             seminar.assignments.add(student)
         }
 
+        students.forEach { student ->
+            val match = seminars.first { it.assignments.contains(student) }
+            val index = student.preferences.indexOf(match)
+            (0 until index).forEach {
+                if (student.preferences[it].canAssignMore) {
+                    println("Opt possible")
+                }
+            }
+        }
+        println("Done Opt")
+
         return seminars.map { it to it.assignments.toList() }.toMap()
     }
 
 }
+
+/*
+val test = ComponentNameProvider<DefaultWeightedEdge> { it.toString()  }
+        val vertexIdProvider =
+            ComponentNameProvider<String> { it }
+        val vertexLabelProvider = ComponentNameProvider<String> { uri -> uri.toString() }
+        val exporter = GraphMLExporter<String, DefaultWeightedEdge>(vertexIdProvider, vertexLabelProvider, test, test)
+        exporter.isExportEdgeWeights = true
+        //exporter.setParameter(GmlExporter.Parameter.EXPORT_EDGE_WEIGHTS, true)
+        val writer = StringWriter()
+        exporter.exportGraph(graph, writer)
+        with(FileWriter("graph.in")) {
+            write(writer.toString())
+            close()
+        }
+        println(graph.vertexSet().size)
+ */
