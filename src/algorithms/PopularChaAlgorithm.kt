@@ -52,7 +52,7 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
                 idSeminarMap[newId] = seminar
                 seminar.copy(id = newId)
             }
-        }.toMap()
+        }.toMap().toMutableMap()
 
         seminarMap.forEach { (_, list) ->
             list.forEach {
@@ -63,16 +63,20 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
         // create f and s houses for students
         val studentPrefs = unmatchedStudents.map {
             val fHouse = it.preferences.first()
-            val sHouse = it.preferences.first {
+            val sHouse = it.preferences.firstOrNull {
                 it != fHouse && houseCapacityOverview[it]!!.size < it.capacity
-            } // TODO: last resort houses
+            } ?: Seminar("l-house_${it.id}", 1).also {
+                seminarMap[it] = listOf(it) // last resort house
+                idSeminarMap[it.id] = it
+                graph.addVertex(it.id)
+            }
 
             it to (fHouse to sHouse)
         }
 
         studentPrefs.forEach { (student, prefs) ->
             prefs.toList().forEach {
-                seminarMap[it]!!.forEach {
+                seminarMap.getValue(it).forEach {
                     graph.addEdge(student.id, it.id)
                 }
             }
@@ -96,7 +100,7 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
         }
 
         students.forEach { student ->
-            val match = seminars.first { it.assignments.contains(student) }
+            val match = seminars.firstOrNull { it.assignments.contains(student) }
             val index = student.preferences.indexOf(match)
             (0 until index).forEach {
                 if (student.preferences[it].canAssignMore) {

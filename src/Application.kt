@@ -2,10 +2,7 @@ package de.aaronoe
 
 import com.google.gson.Gson
 import de.aaronoe.algorithms.*
-import de.aaronoe.models.MatchResponse
-import de.aaronoe.models.Matching
-import de.aaronoe.models.PostSeminar
-import de.aaronoe.models.PostStudent
+import de.aaronoe.models.*
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -32,14 +29,13 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-@UseExperimental(ObsoleteCoroutinesApi::class)
+@ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
@@ -83,9 +79,16 @@ fun Application.module(testing: Boolean = false) {
             call.respond(Repository.addSeminar(newSeminar))
         }
 
-        get("/match") {
+        get("/match/{mechanism}") {
+            val algorithm: StudentMatchingAlgorithm = when (call.parameters["mechanism"]) {
+                "rsd" -> RandomSerialDictatorshipAlgorithm
+                "popular" -> PopularChaAlgorithm
+                "cpp" -> CppAlgorithm
+                else -> throw IllegalArgumentException("Unknown algorithm")
+            }
+
             val (students, seminars) = Repository.getCopiedStudentData()
-            val result = CppAlgorithm.execute(students, seminars)
+            val result = algorithm.execute(students, seminars)
 
             val profile = result
                 .flatMap { (seminar, students) ->
@@ -146,4 +149,3 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 }
-

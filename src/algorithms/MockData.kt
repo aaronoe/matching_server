@@ -3,6 +3,7 @@ package de.aaronoe.algorithms
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import java.util.*
+import kotlin.random.Random
 
 object MockData {
 
@@ -24,6 +25,19 @@ object MockData {
         println("Student Preference Distribution:")
         students.groupBy { it.preferences.first() }.mapValues { it.value.size }.forEach { seminar, i ->
             println("${seminar.name} - $i")
+        }
+
+        return students to seminars
+    }
+
+    fun getVeryLargeRandomData(): Pair<List<Student>, List<Seminar>> {
+        val seminars = (0 until 100).map {
+            Seminar("$it", Random.nextInt(20, 40))
+        }
+        val totalCapacity = seminars.sumBy { it.capacity }
+
+        val students = (0 until totalCapacity).map {
+            Student("$it", "$it", seminars.shuffled().dropLast(90))
         }
 
         return students to seminars
