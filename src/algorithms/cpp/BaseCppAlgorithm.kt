@@ -1,13 +1,21 @@
-package de.aaronoe.algorithms
+package de.aaronoe.algorithms.cpp
 
 import de.aaronoe.Repository.awaitCompletion
+import de.aaronoe.algorithms.StudentMatchingAlgorithm
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import java.io.StringWriter
 import java.util.*
 import kotlin.system.measureTimeMillis
 
-object CppAlgorithm: StudentMatchingAlgorithm {
+class BaseCppAlgorithm(private val type: Algorithm): StudentMatchingAlgorithm {
+
+    enum class Algorithm(val argName: String) {
+        Hungarian("hungarian"),
+        Popular("popular"),
+        RSD("rsd"),
+        MaxPareto("max-pareto")
+    }
 
     override suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
         var id = 0
@@ -33,7 +41,7 @@ object CppAlgorithm: StudentMatchingAlgorithm {
             toString()
         }
 
-        val process = Runtime.getRuntime().exec("./seminar_assignment")
+        val process = Runtime.getRuntime().exec("./seminar_assignment ${type.argName}")
 
         measureTimeMillis {
             process.outputStream.bufferedWriter().use {
@@ -56,4 +64,5 @@ object CppAlgorithm: StudentMatchingAlgorithm {
 
         return matching.groupBy(Pair<Student, Seminar>::second, Pair<Student, Seminar>::first)
     }
+
 }

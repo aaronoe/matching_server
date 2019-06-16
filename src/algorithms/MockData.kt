@@ -44,3 +44,12 @@ object MockData {
     }
 
 }
+
+fun Pair<List<Student>, List<Seminar>>.deepCopy(): Pair<List<Student>, List<Seminar>> {
+    val seminarMap = this.second.map { it.copy() }.associateBy { it.id }
+
+    val students = this.first.map { it.copy(preferences = it.preferences.map { seminarMap.get(it.id)!! }) }
+    val seminars = seminarMap.values.toList()
+
+    return students to seminars
+}
