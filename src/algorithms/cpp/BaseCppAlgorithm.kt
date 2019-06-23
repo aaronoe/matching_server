@@ -2,9 +2,9 @@ package de.aaronoe.algorithms.cpp
 
 import de.aaronoe.Repository.awaitCompletion
 import de.aaronoe.algorithms.StudentMatchingAlgorithm
+import de.aaronoe.benchmark.formatDataToInput
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
-import java.io.StringWriter
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -13,42 +13,28 @@ class BaseCppAlgorithm(private val type: Algorithm): StudentMatchingAlgorithm {
     enum class Algorithm(val argName: String) {
         Hungarian("hungarian"),
         Popular("popular"),
+        PopularModified("popular-modified"),
         RSD("rsd"),
         MaxPareto("max-pareto")
     }
 
     override suspend fun execute(students: List<Student>, seminars: List<Seminar>): Map<Seminar, List<Student>> {
-        var id = 0
-        val seminarIdMap = seminars.associateBy({ it.id }, { id++ })
-
-        val result = with(StringWriter()) {
-            appendln("${seminars.size} ${students.size}")
-
-            seminars.forEachIndexed { index, seminar ->
-                appendln("$index ${seminar.capacity}")
-            }
-
-            students.forEachIndexed { index, student ->
-                append("$index ${student.preferences.size}")
-                student.preferences.forEach { seminar ->
-                    val mappedId = seminarIdMap.getValue(seminar.id)
-
-                    append(" $mappedId")
-                }
-                appendln()
-            }
-
-            toString()
-        }
-
+        val input = formatDataToInput(students, seminars)
         val process = Runtime.getRuntime().exec("./seminar_assignment ${type.argName}")
 
         measureTimeMillis {
             process.outputStream.bufferedWriter().use {
-                it.write(result)
+                it.write(input)
+            }
+
+            process.errorStream.bufferedReader().use {
+                it.lines().forEach {
+                    //System.err.println(it)
+                }
             }
 
             process.awaitCompletion()
+            if (process.exitValue() == 139 || process.exitValue() == 134) return emptyMap()
         }.let {
             println("Execution took ${it}ms")
         }
