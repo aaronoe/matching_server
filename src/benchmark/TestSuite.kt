@@ -2,6 +2,7 @@ package de.aaronoe.benchmark
 
 import de.aaronoe.algorithms.*
 import de.aaronoe.benchmark.mockdata.MockDataProvider
+import de.aaronoe.benchmark.mockdata.PrefLibDataProvider
 import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
@@ -90,7 +91,7 @@ fun getStatistics(
 
 fun doTestRun(
     runs: Int = 2,
-    dataSupplier: MockDataProvider = ZipfMockDataProvider
+    dataSupplier: MockDataProvider = PrefLibDataProvider.prefLib2
 ) = runBlocking(Dispatchers.Default) {
     val data = (0 until runs).map { dataSupplier.generateData() }
 
@@ -201,52 +202,4 @@ fun Collection<Statistics>.average(): Statistics {
 
 fun main() {
     doTestRun()
-}
-
-fun parseSampelData() {
-    val scanner = Scanner(System.`in`)
-
-    val courseCount = scanner.nextInt()
-    scanner.nextLine()
-    val courses = (1..courseCount).map {
-        // skip those, as they don't contain any meaningful information
-        scanner.nextLine()
-        Seminar("$it", 1)
-    }
-
-    val (studentCount, _, preferenceCount) = scanner.nextLine().split(",").map(String::toInt)
-
-    val capacity = (studentCount.toDouble() / courseCount).roundToInt() + 1
-    val seminars = courses.map { it.copy(capacity = capacity) }
-    val courseMap = seminars.associateBy { it.name }
-
-    val students = (0 until preferenceCount).map {
-        val line = scanner.nextLine().split(",").map(String::toInt)
-        val (count) = line
-
-        val prefList = line.drop(2).map { courseMap.getValue("$it") }
-
-        (0 until count).map {
-            Student(name = "$it", preferences = prefList)
-        }
-    }.flatten()
-
-    val test = students
-        .map { it.preferences.first() }
-        .groupBy { it }
-        .mapValues { it.value.size }
-        .let { println("${it.map { it.key.name to it.value }}") }
-
-    val avgRank = seminars.map { seminar ->
-        seminar.name to students.map { it.preferences.indexOf(seminar) }.average()
-    }
-
-    avgRank.filter { it.second >= 0 }.plot(x = { "Seminar $first" }, y = { second })
-        .geomCol()
-        .xLabel("Seminar")
-        .yLabel("Average Rank")
-        .title("Rank Distribution")
-        .show()
-
-    println("Average Rank: $avgRank")
 }
