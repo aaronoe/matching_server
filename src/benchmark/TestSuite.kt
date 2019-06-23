@@ -3,7 +3,6 @@ package de.aaronoe.benchmark
 import de.aaronoe.algorithms.*
 import de.aaronoe.benchmark.mockdata.MockDataProvider
 import de.aaronoe.benchmark.mockdata.PrefLibDataProvider
-import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import kotlinx.coroutines.*
@@ -13,9 +12,9 @@ import kravis.scaleYLog10
 import java.awt.Dimension
 import java.io.File
 import java.io.FileWriter
+import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.roundToInt
 
 private val dateFormat = SimpleDateFormat("dd-MM-yy_HH:mm:ss")
 
@@ -172,18 +171,48 @@ private fun CoroutineScope.saveResults(
         }
     }
 
-    // Popularity check
-    results.entries.forEach { (algorithm, stats) ->
-        val otherAlgorithms = results.entries.filterNot { it.key == algorithm }
-
-        stats.mapIndexed { index, result ->
-            otherAlgorithms.map { it.value[index] }.map {
-                result isMorePopularThan it
-            }.let {
-                println("Popularity Result for ${algorithm.name}: $it")
-            }
-        }
+    val popularityMatrix = getPopularityMatrix(results)
+    FileWriter("${statsDirectory.path}/popularity.matrix").apply {
+        write(popularityMatrix)
+        close()
     }
+    println(popularityMatrix)
+}
+
+private fun getPopularityMatrix(results: Map<StudentMatchingAlgorithm, List<Result>>) = with(StringWriter()) {
+    val count = results.entries.first().value.size
+
+    (0 until count).forEach { index ->
+        appendln("Dataset $index:")
+        appendln()
+        appendf("")
+        results.entries.forEachIndexed { i, entry -> appendf("[$i]") }
+        appendln()
+
+        results.entries.forEachIndexed { i, entry ->
+            val result = entry.value[index]
+            appendf("[$i]")
+            results.entries.map { it.value[index] }.mapIndexed { index, res ->
+                if (i == index) "-" else (result isMorePopularThan res).toString()
+            }.forEach {
+                appendf(it)
+            }
+            appendln()
+        }
+
+        appendln()
+        appendln()
+    }
+
+    results.entries.forEachIndexed { index, entry ->
+        appendln("[$index] = ${entry.key.name}")
+    }
+
+    toString()
+}
+
+private fun StringWriter.appendf(value: Any) {
+    append(value.toString().take(8).padStart(8))
 }
 
 fun Collection<Statistics>.average(): Statistics {

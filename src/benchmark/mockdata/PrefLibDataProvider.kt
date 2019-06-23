@@ -8,7 +8,7 @@ import kotlin.math.roundToInt
 
 class PrefLibDataProvider(
     private val inputFile: File
-): MockDataProvider("PrefLibDataProvider:${inputFile.path}") {
+): MockDataProvider("PrefLibDataProvider:${inputFile.path.replace("/", "_")}") {
 
     companion object {
         val prefLib1 = PrefLibDataProvider(File("preflibdata/ED-00009-00000001.soc"))

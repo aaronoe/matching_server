@@ -5,7 +5,7 @@ import de.aaronoe.models.Student
 import java.io.StringWriter
 
 enum class PopularityResult {
-    GREATER, EQUAL, LESS
+    MORE, EQUAL, LESS
 }
 
 fun Pair<List<Student>, List<Seminar>>.deepCopy(): Pair<List<Student>, List<Seminar>> {
@@ -58,7 +58,7 @@ infix fun Result.isMorePopularThan(other: Result): PopularityResult {
     val smaller = comparisons[-1]?.size ?: 0
 
     return when {
-        greater < smaller -> PopularityResult.GREATER
+        greater < smaller -> PopularityResult.MORE
         greater > smaller -> PopularityResult.LESS
         else -> PopularityResult.EQUAL
     }
