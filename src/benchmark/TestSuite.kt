@@ -1,14 +1,15 @@
 package de.aaronoe.benchmark
 
 import de.aaronoe.algorithms.*
+import de.aaronoe.algorithms.cpp.*
+import de.aaronoe.benchmark.mockdata.LargeMockDataProvider
 import de.aaronoe.benchmark.mockdata.MockDataProvider
 import de.aaronoe.benchmark.mockdata.PrefLibDataProvider
+import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import kotlinx.coroutines.*
-import kravis.geomCol
-import kravis.plot
-import kravis.scaleYLog10
+import kravis.*
 import java.awt.Dimension
 import java.io.File
 import java.io.FileWriter
@@ -21,7 +22,8 @@ private val dateFormat = SimpleDateFormat("dd-MM-yy_HH:mm:ss")
 data class Result(
     val stats: Statistics,
     val algorithm: StudentMatchingAlgorithm,
-    val matching: Map<Seminar, List<Student>>
+    val matching: Map<Seminar, List<Student>>,
+    val timestamp: Long = 0
 )
 
 data class Statistics(
@@ -63,7 +65,8 @@ val StudentMatchingAlgorithm.name: String
 
 fun getStatistics(
     result: Map<Seminar, List<Student>>,
-    students: List<Student>
+    students: List<Student>,
+    seminars: List<Seminar>
 ): Statistics {
     val ranks = result
         .flatMap { (seminar, students) ->
@@ -80,35 +83,40 @@ fun getStatistics(
 
     val unassignedCount = students.count() - profile.sum()
 
+    val max = seminars.size + 1
+    val ranksWithUnassigned = ranks + (0 until unassignedCount).map { max }.also { println("Size extra: ${it.size}") }
+
     return Statistics(
         profile = profile.map { it.toDouble() },
         unassignedCount = unassignedCount.toDouble(),
-        averageRank = ranks.average() + 1,
-        standardDeviationRank = ranks.standartDeviation()
+        averageRank = ranksWithUnassigned.average() + 1,
+        standardDeviationRank = ranksWithUnassigned.standartDeviation()
     )
 }
 
 fun doTestRun(
-    runs: Int = 2,
-    dataSupplier: MockDataProvider = PrefLibDataProvider.prefLib2
+    runs: Int = 10,
+    dataSupplier: MockDataProvider = LargeMockDataProvider
 ) = runBlocking(Dispatchers.Default) {
     val data = (0 until runs).map { dataSupplier.generateData() }
 
-    data.first().first.map { it.preferences.first().name }.groupBy { it }.mapValues { it.value.size }
+    data.first().first.map { it.preferences.first().name }
+        .groupBy { it }.mapValues { it.value.size }
         .toList()
-        .sortedBy { it.first }
+        .sortedBy { it.second }
         .let(::println)
 
-    val tasks = listOf<StudentMatchingAlgorithm>(CppRsd, CppMaxPareto, CppPopular, CppPopularModified, CppHungarian).map { algorithm ->
+    val tasks = listOf(CppRsd, CppMaxPareto, CppPopular, CppPopularModified, CppHungarian).map { algorithm ->
         (0 until runs).map {
             async {
                 val (students, seminars) = data[it].deepCopy()
 
-                val matching = algorithm.execute(students, seminars)
+                val (matching, timestamp) = algorithm.executeWithTimestamp(students, seminars)
                 Result(
-                    stats = getStatistics(matching, students),
+                    stats = getStatistics(matching, students, seminars),
                     algorithm = algorithm,
-                    matching = matching
+                    matching = matching,
+                    timestamp = timestamp
                 )
             }
         }
@@ -140,10 +148,11 @@ private fun CoroutineScope.saveResults(
             appendln("Algorithm: ${algorithm.name} - Dataset ${dataSupplier.name}")
 
             results.forEachIndexed { index, result ->
-                appendln("[$index] ${result.stats}")
+                appendln("[$index] ${result.stats} - Runtime: ${result.timestamp}ms")
             }
 
-            appendln("Average Stats: ${results.map { it.stats }.average()}")
+            val avgRuntime = results.map { it.timestamp }.average()
+            appendln("Average Stats: ${results.map { it.stats }.average()}  - Runtime: ${avgRuntime}ms")
 
             toString()
         }
@@ -230,5 +239,23 @@ fun Collection<Statistics>.average(): Statistics {
 }
 
 fun main() {
-    doTestRun()
+    doTestRun(runs = 10, dataSupplier = PrefLibDataProvider.prefLib1)
+    //printProfile()
+}
+
+private fun printProfile() {
+    val (students, seminars) = ZipfMockDataProvider.generateData()
+    val avgRank = seminars.map { seminar ->
+        seminar.name to students.count { it.preferences.first() == seminar }
+    }.sortedByDescending { it.second }.filter { it.second != 0 }.also(::println).take(10)
+
+    File("distributions").mkdirs()
+
+    avgRank.plot(x = { "#$first" }, y = { second }, fill = { first })
+        .geomCol(showLegend = false)
+        .xLabel("Seminar ID")
+        .yLabel("Number of students")
+        .title("Rank Distribution for the first choice - Zipfian")
+        .show()
+        //.save(File("distributions/zipfian2-distribution.png"), Dimension(1500, 1300))
 }

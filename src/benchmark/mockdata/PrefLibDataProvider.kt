@@ -28,7 +28,7 @@ class PrefLibDataProvider(
 
         val (studentCount, _, preferenceCount) = scanner.nextLine().split(",").map(String::toInt)
 
-        val capacity = (studentCount.toDouble() / courseCount).roundToInt() + 1
+        val capacity = (studentCount.toDouble() / courseCount).roundToInt() + 5
         val seminars = courses.map { it.copy(capacity = capacity) }
         val courseMap = seminars.associateBy { it.name }
 

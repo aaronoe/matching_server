@@ -1,10 +1,10 @@
 package de.aaronoe
 
 import com.google.gson.Gson
-import de.aaronoe.algorithms.CppHungarian
 import de.aaronoe.algorithms.PopularChaAlgorithm
 import de.aaronoe.algorithms.RandomSerialDictatorshipAlgorithm
 import de.aaronoe.algorithms.StudentMatchingAlgorithm
+import de.aaronoe.algorithms.cpp.CppHungarian
 import de.aaronoe.models.MatchResponse
 import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar

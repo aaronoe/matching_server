@@ -1,6 +1,6 @@
-package de.aaronoe.algorithms
+package de.aaronoe.algorithms.cpp
 
-import de.aaronoe.algorithms.cpp.BaseCppAlgorithm
+import de.aaronoe.algorithms.StudentMatchingAlgorithm
 
 object CppHungarian: StudentMatchingAlgorithm by BaseCppAlgorithm(BaseCppAlgorithm.Algorithm.Hungarian)
 object CppRsd: StudentMatchingAlgorithm by BaseCppAlgorithm(BaseCppAlgorithm.Algorithm.RSD)
