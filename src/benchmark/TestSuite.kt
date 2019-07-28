@@ -30,7 +30,9 @@ data class Statistics(
     val profile: List<Double>,
     val unassignedCount: Double,
     val averageRank: Double,
-    val standardDeviationRank: Double
+    val standardDeviationRank: Double,
+    val averageRankWithUnassigned: Double,
+    val standardDeviationWithUnassigned: Double
 ) {
 
     override fun toString(): String {
@@ -42,7 +44,10 @@ data class Statistics(
             append("Average Rank: ${averageRank.toString().take(5)}")
             append(" - ")
             append("Standard Deviation Rank: ${standardDeviationRank.toString().take(5)}")
-
+            append(" - ")
+            append("Average Rank (/w unassigned): ${averageRankWithUnassigned.toString().take(5)}")
+            append(" - ")
+            append("Standard Deviation Rank (/w unassigned): ${standardDeviationWithUnassigned.toString().take(5)}")
             toString()
         }
     }
@@ -89,13 +94,15 @@ fun getStatistics(
     return Statistics(
         profile = profile.map { it.toDouble() },
         unassignedCount = unassignedCount.toDouble(),
-        averageRank = ranksWithUnassigned.average() + 1,
-        standardDeviationRank = ranksWithUnassigned.standartDeviation()
+        averageRank = ranks.average() + 1,
+        standardDeviationRank = ranks.standartDeviation(),
+        averageRankWithUnassigned = ranksWithUnassigned.average() + 1,
+        standardDeviationWithUnassigned = ranksWithUnassigned.standartDeviation()
     )
 }
 
 fun doTestRun(
-    runs: Int = 10,
+    runs: Int = 8,
     dataSupplier: MockDataProvider = LargeMockDataProvider
 ) = runBlocking(Dispatchers.Default) {
     val data = (0 until runs).map { dataSupplier.generateData() }
@@ -235,12 +242,15 @@ fun Collection<Statistics>.average(): Statistics {
         filtered.map { it.profile.getOrElse(index) { 0.toDouble() } }.average()
     }
 
-    return Statistics(profileAvg, unassignedCount, avg, std)
+    return Statistics(profileAvg, unassignedCount, avg, std,
+        filtered.map { it.averageRankWithUnassigned }.average(),
+        filtered.map { it.standardDeviationWithUnassigned }.average()
+    )
 }
 
 fun main() {
-    doTestRun(runs = 10, dataSupplier = PrefLibDataProvider.prefLib1)
-    //printProfile()
+    //doTestRun(runs = 10, dataSupplier = LargeMockDataProvider)
+    printProfile()
 }
 
 private fun printProfile() {

@@ -8,10 +8,11 @@ import kotlin.random.Random
 object ZipfMockDataProvider: MockDataProvider("MediumZipf") {
 
     private val powerLaw = PowerLaw()
+    private const val SEMINAR_COUNT = 7
 
     override fun generateData(): Pair<List<Student>, List<Seminar>> {
-        val seminars = (0 until 40).map {
-            Seminar("$it", Random.nextInt(30, 55))
+        val seminars = (0 until SEMINAR_COUNT).map {
+            Seminar("$it", 20)
         }
 
         val totalCapacity = seminars.sumBy { it.capacity }

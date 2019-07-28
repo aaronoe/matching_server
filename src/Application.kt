@@ -1,10 +1,8 @@
 package de.aaronoe
 
 import com.google.gson.Gson
-import de.aaronoe.algorithms.PopularChaAlgorithm
-import de.aaronoe.algorithms.RandomSerialDictatorshipAlgorithm
 import de.aaronoe.algorithms.StudentMatchingAlgorithm
-import de.aaronoe.algorithms.cpp.CppHungarian
+import de.aaronoe.algorithms.cpp.*
 import de.aaronoe.models.MatchResponse
 import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar
@@ -87,9 +85,11 @@ fun Application.module(testing: Boolean = false) {
 
         get("/match/{mechanism}") {
             val algorithm: StudentMatchingAlgorithm = when (call.parameters["mechanism"]) {
-                "rsd" -> RandomSerialDictatorshipAlgorithm
-                "popular" -> PopularChaAlgorithm
-                "cpp" -> CppHungarian
+                "rsd" -> CppRsd
+                "popular" -> CppPopular
+                "popular-mod" -> CppPopularModified
+                "hungarian" -> CppHungarian
+                "max-pareto" -> CppMaxPareto
                 else -> throw IllegalArgumentException("Unknown algorithm")
             }
 
