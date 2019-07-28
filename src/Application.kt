@@ -23,10 +23,7 @@ import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.close
 import io.ktor.http.cio.websocket.readText
 import io.ktor.request.receive
-import io.ktor.response.header
-import io.ktor.response.respond
-import io.ktor.response.respondFile
-import io.ktor.response.respondText
+import io.ktor.response.*
 import io.ktor.routing.delete
 import io.ktor.routing.get
 import io.ktor.routing.post
@@ -67,6 +64,10 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
+        get("/") {
+            call.respondRedirect("/web")
+        }
+
         get("/hello") {
             call.respondText(text = "Hello World")
         }
