@@ -64,10 +64,6 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        get("/") {
-            call.respondRedirect("/web")
-        }
-
         get("/hello") {
             call.respondText(text = "Hello World")
         }
