@@ -114,20 +114,3 @@ object PopularChaAlgorithm : StudentMatchingAlgorithm {
     }
 
 }
-
-/*
-val test = ComponentNameProvider<DefaultWeightedEdge> { it.toString()  }
-        val vertexIdProvider =
-            ComponentNameProvider<String> { it }
-        val vertexLabelProvider = ComponentNameProvider<String> { uri -> uri.toString() }
-        val exporter = GraphMLExporter<String, DefaultWeightedEdge>(vertexIdProvider, vertexLabelProvider, test, test)
-        exporter.isExportEdgeWeights = true
-        //exporter.setParameter(GmlExporter.Parameter.EXPORT_EDGE_WEIGHTS, true)
-        val writer = StringWriter()
-        exporter.exportGraph(graph, writer)
-        with(FileWriter("graph.in")) {
-            write(writer.toString())
-            close()
-        }
-        println(graph.vertexSet().size)
- */

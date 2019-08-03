@@ -1,8 +1,13 @@
 package de.aaronoe
 
 import com.google.gson.Gson
+import de.aaronoe.DatasetType.*
 import de.aaronoe.algorithms.StudentMatchingAlgorithm
 import de.aaronoe.algorithms.cpp.*
+import de.aaronoe.benchmark.getStatistics
+import de.aaronoe.benchmark.mockdata.LargeMockDataProvider
+import de.aaronoe.benchmark.mockdata.PrefLibDataProvider
+import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.MatchResponse
 import de.aaronoe.models.Matching
 import de.aaronoe.models.PostSeminar
@@ -23,11 +28,9 @@ import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.close
 import io.ktor.http.cio.websocket.readText
 import io.ktor.request.receive
+import io.ktor.request.receiveText
 import io.ktor.response.*
-import io.ktor.routing.delete
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.routing
+import io.ktor.routing.*
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,11 +46,14 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
-        gson()
+        gson {
+            serializeSpecialFloatingPointValues()
+        }
     }
 
     install(StatusPages) {
         exception<Throwable> { cause ->
+            cause.printStackTrace()
             call.respond(listOf("There was an error processing your request!", cause.localizedMessage))
         }
     }
@@ -74,10 +80,34 @@ fun Application.module(testing: Boolean = false) {
             call.respond(Repository.addStudent(newStudent))
         }
 
+        post("/students/{student_id}") {
+            val studentId = call.parameters["student_id"] ?: throw IllegalStateException("Student ID should be supplied")
+
+            val newStudent = call.receive<PostStudent>()
+            val result = Repository.updateStudent(studentId, newStudent)
+            if (result == null) {
+                call.respondText(text = "Not found", status = HttpStatusCode.NotFound)
+            } else {
+                call.respond(result)
+            }
+        }
+
         post("/seminars") {
             val newSeminar = call.receive<PostSeminar>()
 
             call.respond(Repository.addSeminar(newSeminar))
+        }
+
+        post("/seminars/{seminar_id}") {
+            val seminarId = call.parameters["seminar_id"] ?: throw IllegalStateException("Seminar ID should be supplied")
+
+            val newSeminar = call.receive<PostSeminar>()
+            val result = Repository.updateSeminar(seminarId, newSeminar)
+            if (result == null) {
+                call.respondText(text = "Not found", status = HttpStatusCode.NotFound)
+            } else {
+                call.respond(result)
+            }
         }
 
         get("/match/{mechanism}") {
@@ -91,23 +121,11 @@ fun Application.module(testing: Boolean = false) {
             }
 
             val (students, seminars) = Repository.getCopiedStudentData()
-            val result = algorithm.execute(students, seminars)
+            val (result, runtime) = algorithm.executeWithTimestamp(students, seminars)
+            val stats = getStatistics(result, students, seminars).cleanNans()
 
-            val profile = result
-                .flatMap { (seminar, students) ->
-                    students.map { student -> student.preferences.indexOf(seminar) }
-                }
-                .groupBy { it }
-                .mapValues { it.value.count() }
-                .toList()
-                .sortedBy(Pair<Int, Int>::first)
-                .map(Pair<Int, Int>::second)
-
-            val unassignedCount = students.count() - profile.sum()
-
-            println("Profile: $profile")
             result.map(Matching.Companion::fromMapEntry).sortedBy { it.seminar.name }.let {
-                call.respond(MatchResponse(it, profile, unassignedCount))
+                call.respond(MatchResponse(it, stats, runtime))
             }
         }
 
@@ -116,6 +134,27 @@ fun Application.module(testing: Boolean = false) {
                 call.response.header("Content-Disposition", "attachment; filename=\"${it.name}\"")
                 call.respondFile(it)
             } ?: call.respond(status = HttpStatusCode.NotFound, message = "Not found")
+        }
+
+        post("/file") {
+            val payload = call.receiveText()
+            val json = payload.split("\n")[4]
+            val parsed = gson.fromJson<Repository.AppData>(json, Repository.AppData::class.java)
+            Repository.setData(parsed)
+        }
+
+        post("/dataset") {
+            val type = call.receive<DatasetPayload>()
+
+            when (type.name) {
+                PrefLib1 -> Repository.changeDataset(PrefLibDataProvider.prefLib1)
+                PrefLib2 -> Repository.changeDataset(PrefLibDataProvider.prefLib2)
+                Zipfian -> Repository.changeDataset(ZipfMockDataProvider)
+                Uniform -> Repository.changeDataset(LargeMockDataProvider)
+                Custom -> throw IllegalArgumentException("Use /file endpoint for uploading custom data")
+            }
+
+            call.respondText(status = HttpStatusCode.OK, text = "OK")
         }
 
         delete("/students/{student_id}") {
@@ -151,4 +190,14 @@ fun Application.module(testing: Boolean = false) {
             }
         }
     }
+}
+
+data class DatasetPayload(val name: DatasetType)
+
+enum class DatasetType {
+    PrefLib1,
+    PrefLib2,
+    Zipfian,
+    Uniform,
+    Custom
 }

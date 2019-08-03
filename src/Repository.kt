@@ -1,6 +1,7 @@
 package de.aaronoe
 
 import com.google.gson.GsonBuilder
+import de.aaronoe.benchmark.mockdata.MockDataProvider
 import de.aaronoe.models.PostSeminar
 import de.aaronoe.models.PostStudent
 import de.aaronoe.models.Seminar
@@ -76,6 +77,24 @@ object Repository {
         }
     }
 
+    suspend fun updateStudent(studentId: String, updated: PostStudent): Student? {
+        return studentData.let {
+            val index = it.students.indexOfFirst { it.id == studentId }
+            if (index == -1) return null
+
+            val newStudent = Student(id = studentId, name = updated.name, preferences = updated.preferences)
+            val mutableStudents = it.students.toMutableList()
+            mutableStudents[index] = newStudent
+
+            it.copy(students = mutableStudents).also {
+                studentData = it
+                channel.send(it)
+            }
+
+            newStudent
+        }
+    }
+
     suspend fun deleteStudent(studentId: String): Boolean {
         return studentData.let {
             val newStudents = it.students
@@ -87,6 +106,32 @@ object Repository {
             }
             result
         }
+    }
+
+    suspend fun updateSeminar(seminarId: String, updated: PostSeminar): Seminar? {
+        return studentData.let {
+            val index = it.seminars.indexOfFirst { it.id == seminarId }
+            if (index == -1) return null
+
+            val newSeminar = Seminar(id = seminarId, name = updated.name, capacity = updated.capacity)
+            val mutableSeminars = it.seminars.toMutableList()
+            mutableSeminars[index] = newSeminar
+
+            it.copy(seminars = mutableSeminars).also {
+                studentData = it
+                channel.send(it)
+            }
+
+            newSeminar
+        }
+    }
+
+    suspend fun changeDataset(provider: MockDataProvider) {
+        val (students, seminars) = provider.generateData()
+        val data = AppData(students.toMutableList(), seminars.toMutableList())
+
+        studentData = data
+        channel.send(data)
     }
 
     suspend fun deleteSeminar(seminarId: String): Boolean {
@@ -106,11 +151,9 @@ object Repository {
         }
     }
 
-    suspend fun Process.awaitCompletion() {
-        while (isAlive) {
-            yield()
-        }
-        waitFor()
+    suspend fun setData(newData: AppData) {
+        studentData = newData
+        channel.send(newData)
     }
 
 }

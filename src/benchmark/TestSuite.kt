@@ -1,10 +1,10 @@
 package de.aaronoe.benchmark
 
+import de.aaronoe.Repository
 import de.aaronoe.algorithms.*
 import de.aaronoe.algorithms.cpp.*
 import de.aaronoe.benchmark.mockdata.LargeMockDataProvider
 import de.aaronoe.benchmark.mockdata.MockDataProvider
-import de.aaronoe.benchmark.mockdata.PrefLibDataProvider
 import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
@@ -34,6 +34,17 @@ data class Statistics(
     val averageRankWithUnassigned: Double,
     val standardDeviationWithUnassigned: Double
 ) {
+
+    fun cleanNans(): Statistics {
+        return this.copy(
+            profile = profile,
+            unassignedCount = if (unassignedCount == Double.NaN) 0.toDouble() else unassignedCount,
+            averageRank = if (profile.isEmpty()) 0.toDouble() else averageRank,
+            standardDeviationRank = if (profile.isEmpty()) 0.toDouble() else standardDeviationRank,
+            averageRankWithUnassigned = if (unassignedCount.toInt() == 0) 0.toDouble() else averageRankWithUnassigned,
+            standardDeviationWithUnassigned = if (unassignedCount.toInt() == 0) 0.toDouble() else standardDeviationWithUnassigned
+        )
+    }
 
     override fun toString(): String {
         return with(StringBuilder()) {
@@ -248,7 +259,9 @@ fun Collection<Statistics>.average(): Statistics {
     )
 }
 
-fun main() {
+fun main() = runBlocking {
+    val (students, seminars) = Repository.getCopiedStudentData()
+    val res = CppMaxPareto.execute(students, seminars)
     //doTestRun(runs = 10, dataSupplier = LargeMockDataProvider)
     printProfile()
 }
@@ -265,7 +278,7 @@ private fun printProfile() {
         .geomCol(showLegend = false)
         .xLabel("Seminar ID")
         .yLabel("Number of students")
-        .title("Rank Distribution for the first choice - Zipfian")
+        .title("Rank Distribution for the first choice - zipfian")
         .show()
         //.save(File("distributions/zipfian2-distribution.png"), Dimension(1500, 1300))
 }
