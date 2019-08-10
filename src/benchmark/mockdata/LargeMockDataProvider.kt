@@ -14,7 +14,7 @@ object LargeMockDataProvider: MockDataProvider("LargeUniform") {
         val totalCapacity = seminars.sumBy { it.capacity }
 
         val students = (0 until totalCapacity).map {
-            Student("$it", "$it", seminars.shuffled())
+            Student("$it", "$it", seminars.shuffled().take(10))
         }
 
         return students to seminars

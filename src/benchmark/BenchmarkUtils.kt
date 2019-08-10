@@ -4,6 +4,10 @@ import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import java.io.StringWriter
 
+private const val PREFIX_META_DATA = 'd'
+private const val PREFIX_SEMINAR = 't'
+private const val PREFIX_STUDENT = 's'
+
 enum class PopularityResult {
     MORE, EQUAL, LESS
 }
@@ -21,14 +25,14 @@ fun formatDataToInput(students: List<Student>, seminars: List<Seminar>) = with(S
     var id = 0
     val seminarIdMap = seminars.associateBy({ it.id }, { id++ })
 
-    appendln("${seminars.size} ${students.size}")
+    appendln("$PREFIX_META_DATA ${seminars.size} ${students.size}")
 
     seminars.forEachIndexed { index, seminar ->
-        appendln("$index ${seminar.capacity}")
+        appendln("$PREFIX_SEMINAR $index ${seminar.capacity}")
     }
 
     students.forEachIndexed { index, student ->
-        append("$index ${student.preferences.size}")
+        append("$PREFIX_STUDENT $index ${student.preferences.size}")
         student.preferences.forEach { seminar ->
             val mappedId = seminarIdMap.getValue(seminar.id)
 

@@ -1,6 +1,5 @@
 package de.aaronoe.benchmark
 
-import de.aaronoe.Repository
 import de.aaronoe.algorithms.*
 import de.aaronoe.algorithms.cpp.*
 import de.aaronoe.benchmark.mockdata.LargeMockDataProvider
@@ -9,13 +8,16 @@ import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import kotlinx.coroutines.*
-import kravis.*
+import kravis.geomCol
+import kravis.plot
+import kravis.scaleYLog10
 import java.awt.Dimension
 import java.io.File
 import java.io.FileWriter
 import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 private val dateFormat = SimpleDateFormat("dd-MM-yy_HH:mm:ss")
 
@@ -161,6 +163,9 @@ private fun CoroutineScope.saveResults(
         }
     }
 
+    val algorithms = results.keys
+    val ranksMap = mutableMapOf<StudentMatchingAlgorithm, List<Int>>()
+
     results.forEach { (algorithm, results) ->
         val summary = with(StringBuilder()) {
             appendln("Algorithm: ${algorithm.name} - Dataset ${dataSupplier.name}")
@@ -171,6 +176,12 @@ private fun CoroutineScope.saveResults(
 
             val avgRuntime = results.map { it.timestamp }.average()
             appendln("Average Stats: ${results.map { it.stats }.average()}  - Runtime: ${avgRuntime}ms")
+
+            val allRanks = mutableListOf<Int>()
+            results.map { it.stats }.average().profile.forEachIndexed { index, value ->
+                (0 until value.roundToInt()).map { index + 1 }.let(allRanks::addAll)
+            }
+            ranksMap[algorithm] = allRanks
 
             toString()
         }
@@ -197,6 +208,23 @@ private fun CoroutineScope.saveResults(
             }
         }
     }
+
+    val csvRanks = StringBuilder().apply {
+        appendln(algorithms.joinToString(separator = ",") { it.name })
+
+        val maxLength = ranksMap.maxBy { it.value.size }?.value?.size ?: 0
+        (0 until maxLength).forEach { index ->
+            algorithms.map { algorithm ->
+                ranksMap[algorithm]?.getOrNull(index)?.toString() ?: ""
+            }.joinToString(separator = ",").let {
+                appendln(it)
+            }
+        }
+
+        toString()
+    }
+
+    //println(csvRanks)
 
     val popularityMatrix = getPopularityMatrix(results)
     FileWriter("${statsDirectory.path}/popularity.matrix").apply {
@@ -260,9 +288,7 @@ fun Collection<Statistics>.average(): Statistics {
 }
 
 fun main() = runBlocking {
-    val (students, seminars) = Repository.getCopiedStudentData()
-    val res = CppMaxPareto.execute(students, seminars)
-    //doTestRun(runs = 10, dataSupplier = LargeMockDataProvider)
+    doTestRun(runs = 10, dataSupplier = LargeMockDataProvider)
     printProfile()
 }
 
