@@ -33,7 +33,7 @@ object ZipfMockDataProvider: MockDataProvider("MediumZipf") {
                 assert(it.size == preferenceListLength)
             }
 
-            Student("$it", "$it", prefList)
+            Student(name = getRandomName(), preferences = prefList)
         }
 
         return students to seminars

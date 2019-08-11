@@ -1,5 +1,6 @@
 package de.aaronoe.benchmark.mockdata
 
+import com.github.javafaker.Faker
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
 import java.io.InputStream
@@ -40,7 +41,7 @@ class PrefLibDataProvider(
             val prefList = line.drop(2).map { courseMap.getValue("$it") }
 
             (0 until count).map {
-                Student(name = "$it", preferences = prefList)
+                Student(name = getRandomName(), preferences = prefList)
             }
         }.flatten()
 

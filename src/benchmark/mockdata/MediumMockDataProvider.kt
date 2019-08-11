@@ -18,7 +18,7 @@ object MediumMockDataProvider : MockDataProvider("MediumUniform") {
         val seminars = listOf(ids, home, debugging, one, two, three, four)
 
         val students = (0 until seminars.sumBy { it.capacity }).map {
-            Student(id = it.toString(), name = UUID.randomUUID().toString(), preferences = seminars.shuffled())
+            Student(id = it.toString(), name = getRandomName(), preferences = seminars.shuffled())
         }
 
         println("Student Preference Distribution:")
