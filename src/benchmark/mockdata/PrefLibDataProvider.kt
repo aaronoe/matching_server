@@ -2,21 +2,22 @@ package de.aaronoe.benchmark.mockdata
 
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
-import java.io.File
+import java.io.InputStream
+import java.net.URL
 import java.util.*
 import kotlin.math.roundToInt
 
 class PrefLibDataProvider(
-    private val inputFile: File
-): MockDataProvider("PrefLibDataProvider:${inputFile.path.replace("/", "_")}") {
+    private val url: String
+): MockDataProvider("PrefLibDataProvider:${url.split("/").last()}") {
 
     companion object {
-        val prefLib1 = PrefLibDataProvider(File("preflibdata/ED-00009-00000001.soc"))
-        val prefLib2 = PrefLibDataProvider(File("preflibdata/ED-00009-00000002.soc"))
+        val prefLib1 = PrefLibDataProvider("http://www.preflib.org/data/election/agh/ED-00009-00000001.soc")
+        val prefLib2 = PrefLibDataProvider("http://www.preflib.org/data/election/agh/ED-00009-00000001.soc")
     }
 
     override fun generateData(): Pair<List<Student>, List<Seminar>> {
-        val scanner = Scanner(inputFile)
+        val scanner = Scanner(URL(url).openStream())
 
         val courseCount = scanner.nextInt()
         scanner.nextLine()
