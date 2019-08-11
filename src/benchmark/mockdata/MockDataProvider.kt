@@ -10,6 +10,6 @@ abstract class MockDataProvider(val name: String) {
 
     abstract fun generateData(): Pair<List<Student>, List<Seminar>>
 
-    fun getRandomName() = nameGenerator.name().fullName()
+    fun getRandomName() = nameGenerator.name().name() ?: "Bob"
 
 }

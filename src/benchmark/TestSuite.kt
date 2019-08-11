@@ -4,6 +4,7 @@ import de.aaronoe.algorithms.*
 import de.aaronoe.algorithms.cpp.*
 import de.aaronoe.benchmark.mockdata.LargeMockDataProvider
 import de.aaronoe.benchmark.mockdata.MockDataProvider
+import de.aaronoe.benchmark.mockdata.PrefLibDataProvider
 import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
@@ -288,7 +289,7 @@ fun Collection<Statistics>.average(): Statistics {
 }
 
 fun main() = runBlocking {
-    doTestRun(runs = 10, dataSupplier = LargeMockDataProvider)
+    doTestRun(runs = 1, dataSupplier = PrefLibDataProvider.prefLib1)
     printProfile()
 }
 
