@@ -33,13 +33,13 @@ object Repository {
         }
 
         override fun getValue(thisRef: Any?, property: KProperty<*>): AppData {
-            FileReader(file).use { reader ->
+            FileReader("${property.name}.json").use { reader ->
                 return gson.fromJson(reader, AppData::class.java) ?: AppData()
             }
         }
 
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: AppData) {
-            FileWriter(file).use { writer ->
+            FileWriter("${property.name}.json").use { writer ->
                 gson.toJson(value, writer)
             }
         }
