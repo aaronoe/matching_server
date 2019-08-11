@@ -9,7 +9,6 @@ import de.aaronoe.models.Student
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.yield
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -27,19 +26,20 @@ object Repository {
     var studentData by object : ReadWriteProperty<Any?, AppData> {
 
         private val gson = GsonBuilder().create()
+        private val file = File("studentData.json").also {
+            if (!it.exists()) {
+                it.createNewFile()
+            }
+        }
 
         override fun getValue(thisRef: Any?, property: KProperty<*>): AppData {
-            val file = File("${property.name}.json")
-            if (!file.exists()) {
-                file.createNewFile()
-            }
             FileReader(file).use { reader ->
-                return gson.fromJson(reader, AppData::class.java)
+                return gson.fromJson(reader, AppData::class.java) ?: AppData()
             }
         }
 
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: AppData) {
-            FileWriter("${property.name}.json").use { writer ->
+            FileWriter(file).use { writer ->
                 gson.toJson(value, writer)
             }
         }
