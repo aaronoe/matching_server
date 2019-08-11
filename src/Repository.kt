@@ -29,7 +29,11 @@ object Repository {
         private val gson = GsonBuilder().create()
 
         override fun getValue(thisRef: Any?, property: KProperty<*>): AppData {
-            FileReader("${property.name}.json").use { reader ->
+            val file = File("${property.name}.json")
+            if (!file.exists()) {
+                file.createNewFile()
+            }
+            FileReader(file).use { reader ->
                 return gson.fromJson(reader, AppData::class.java)
             }
         }
