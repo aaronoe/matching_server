@@ -1,9 +1,7 @@
 package de.aaronoe.benchmark.mockdata
 
-import com.github.javafaker.Faker
 import de.aaronoe.models.Seminar
 import de.aaronoe.models.Student
-import java.io.InputStream
 import java.net.URL
 import java.util.*
 import kotlin.math.roundToInt
@@ -14,7 +12,7 @@ class PrefLibDataProvider(
 
     companion object {
         val prefLib1 = PrefLibDataProvider("http://www.preflib.org/data/election/agh/ED-00009-00000001.soc")
-        val prefLib2 = PrefLibDataProvider("http://www.preflib.org/data/election/agh/ED-00009-00000001.soc")
+        val prefLib2 = PrefLibDataProvider("http://www.preflib.org/data/election/agh/ED-00009-00000002.soc")
     }
 
     override fun generateData(): Pair<List<Student>, List<Seminar>> {
