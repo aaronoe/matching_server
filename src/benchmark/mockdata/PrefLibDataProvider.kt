@@ -23,7 +23,7 @@ class PrefLibDataProvider(
         val courses = (1..courseCount).map {
             // skip those, as they don't contain any meaningful information
             scanner.nextLine()
-            Seminar("$it", 1)
+            Seminar("Seminar #$it", 1)
         }
 
         val (studentCount, _, preferenceCount) = scanner.nextLine().split(",").map(String::toInt)

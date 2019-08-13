@@ -6,6 +6,7 @@ import de.aaronoe.algorithms.StudentMatchingAlgorithm
 import de.aaronoe.algorithms.cpp.*
 import de.aaronoe.benchmark.getStatistics
 import de.aaronoe.benchmark.mockdata.LargeMockDataProvider
+import de.aaronoe.benchmark.mockdata.MediumMockDataProvider
 import de.aaronoe.benchmark.mockdata.PrefLibDataProvider
 import de.aaronoe.benchmark.mockdata.ZipfMockDataProvider
 import de.aaronoe.models.MatchResponse
@@ -150,7 +151,7 @@ fun Application.module(testing: Boolean = false) {
                 PrefLib1 -> Repository.changeDataset(PrefLibDataProvider.prefLib1)
                 PrefLib2 -> Repository.changeDataset(PrefLibDataProvider.prefLib2)
                 Zipfian -> Repository.changeDataset(ZipfMockDataProvider)
-                Uniform -> Repository.changeDataset(LargeMockDataProvider)
+                Uniform -> Repository.changeDataset(MediumMockDataProvider)
                 Custom -> throw IllegalArgumentException("Use /file endpoint for uploading custom data")
             }
 

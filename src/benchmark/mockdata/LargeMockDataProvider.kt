@@ -8,7 +8,7 @@ object LargeMockDataProvider: MockDataProvider("LargeUniform") {
 
     override fun generateData(): Pair<List<Student>, List<Seminar>> {
         val seminars = (0 until SEMINAR_COUNT).map {
-            Seminar("$it", SEMINAR_COUNT * 2)
+            Seminar("Seminar #$it", SEMINAR_COUNT * 2)
         }
 
         val totalCapacity = seminars.sumBy { it.capacity }

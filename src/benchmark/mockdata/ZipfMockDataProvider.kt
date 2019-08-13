@@ -12,7 +12,7 @@ object ZipfMockDataProvider: MockDataProvider("MediumZipf") {
 
     override fun generateData(): Pair<List<Student>, List<Seminar>> {
         val seminars = (0 until SEMINAR_COUNT).map {
-            Seminar("$it", 20)
+            Seminar("Seminar #$it", 20)
         }
 
         val totalCapacity = seminars.sumBy { it.capacity }
